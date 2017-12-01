@@ -1,3 +1,0 @@
-accessing
-columns: anArray6OfOrderedCollectionOfaCharacter
-	columns := anArray6OfOrderedCollectionOfaCharacter

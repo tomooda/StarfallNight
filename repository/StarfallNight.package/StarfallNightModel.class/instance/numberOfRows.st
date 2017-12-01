@@ -1,3 +1,0 @@
-constants
-numberOfRows
-	^ 13

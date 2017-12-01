@@ -1,5 +1,5 @@
 "
-RetzBoard is a Morph that displays a game board of  the Retz game.
+StarfallNight is a so-called drop-game to align 3 of the same kind of jewels in a column, a row or diagonal .
 "
 Class {
 	#name : #StarfallNightModel,
@@ -10,7 +10,7 @@ Class {
 		'nextJewels',
 		'column',
 		'row',
-		'jewels',
+		'numberOfJewels',
 		'heart',
 		'announcer'
 	],
@@ -28,23 +28,8 @@ StarfallNightModel >> at: aPoint [
 ]
 
 { #category : #accessing }
-StarfallNightModel >> at: aPoint put: aCharacter [
-	^ (columns at: aPoint y) at: aPoint x put: aCharacter
-]
-
-{ #category : #accessing }
-StarfallNightModel >> atColumn: c row: r put: aCharacter [
-	^ (columns at: c) at: r put: aCharacter
-]
-
-{ #category : #constants }
-StarfallNightModel >> colors [
-	^ {Color red.
-	Color magenta.
-	Color cyan.
-	Color orange.
-	Color yellow.
-	Color green}
+StarfallNightModel >> at: aPoint put: anInteger [
+	^ (columns at: aPoint y) at: aPoint x put: anInteger
 ]
 
 { #category : #accessing }
@@ -63,8 +48,8 @@ StarfallNightModel >> columns [
 ]
 
 { #category : #accessing }
-StarfallNightModel >> columns: anArray6OfOrderedCollectionOfaCharacter [
-	columns := anArray6OfOrderedCollectionOfaCharacter
+StarfallNightModel >> columns: anArray6OfOrderedCollectionOfInteger [
+	columns := anArray6OfOrderedCollectionOfInteger
 ]
 
 { #category : #accessing }
@@ -74,39 +59,44 @@ StarfallNightModel >> currentJewels [
 
 { #category : #actions }
 StarfallNightModel >> cycle [
-	heart := heart + 1.
-	heart >= self heartCycle
-		ifTrue: [ jewels
-				ifNil: [ self shrink.
-					self vanishTriples
-						ifFalse: [ self next ] ]
-				ifNotNil: [ self down ].
-			heart := 0 ]
+	currentJewels
+		ifNil: [ self shrink.
+			self vanishTriples
+				ifFalse: [ self next ] ]
+		ifNotNil: [ self fall ].
+	heart := 0
 ]
 
 { #category : #defaults }
-StarfallNightModel >> defaultJewels [
-	^ #($A $B $C $D $E $F)
+StarfallNightModel >> defaultNumberOfJewels [
+	^ 6
 ]
 
 { #category : #actions }
 StarfallNightModel >> down [
-	row := (columns at: column) + 1
+	row := (columns at: column) size + 1.
+	self notifyJewelsUpdated
 ]
 
 { #category : #actions }
 StarfallNightModel >> fall [
+	row := row - 1.
 	(columns at: column) size < row
-		ifTrue: [ row := row - 1 ]
 		ifFalse: [ (columns at: column) addAll: currentJewels.
-			jewels := nil ]
+			currentJewels := nil ].
+	self notifyJewelsUpdated
 ]
 
 { #category : #accessing }
-StarfallNightModel >> generateNextJewels [
-	jewels := {jewels atRandom.
-	jewels atRandom.
-	jewels atRandom}
+StarfallNightModel >> generateJewel [
+	^ (1 to: self numberOfJewels) atRandom
+]
+
+{ #category : #accessing }
+StarfallNightModel >> generateTripleJewels [
+	^ {self generateJewel.
+	self generateJewel.
+	self generateJewel}
 ]
 
 { #category : #constants }
@@ -117,43 +107,57 @@ StarfallNightModel >> heartCycle [
 { #category : #initialization }
 StarfallNightModel >> initialize [
 	super initialize.
-	jewels := self defaultJewels.
-	columns := (1 to: self numberOfColumns)
-		collect: [ :c | OrderedCollection new: self numberOfRows ].
+	columns := (1 to: self numberOfColumns) collect: [ :c | OrderedCollection new: self numberOfRows ].
+	row := self numberOfRows.
+	column := (self numberOfColumns + 1) // 2.
+	nextJewels := self generateTripleJewels.
 	heart := 0
-]
-
-{ #category : #accessing }
-StarfallNightModel >> jewels [
-	^ jewels
-]
-
-{ #category : #accessing }
-StarfallNightModel >> jewels: aCollectionOfCharacter [
-	jewels := aCollectionOfCharacter
 ]
 
 { #category : #actions }
 StarfallNightModel >> left [
-	column := column - 1 max: 1
+	column := column - 1 max: 1.
+	self notifyJewelsUpdated 
 ]
 
 { #category : #actions }
 StarfallNightModel >> next [
 	currentJewels := nextJewels.
-	nextJewels := self generateNextJewels.
+	nextJewels := self generateTripleJewels.
 	row := self numberOfRows.
-	column := self numberOfColumns + 1 // 2
+	column := (self numberOfColumns + 1) // 2.
+	self notifyNextUpdated.
+	self notifyJewelsUpdated
 ]
 
 { #category : #accessing }
 StarfallNightModel >> nextJewels [
-	^ nextJewels ifNil: [ nextJewels := self generateNextJewels ]
+	^ nextJewels ifNil: [ nextJewels := self generateTripleJewels ]
+]
+
+{ #category : #announcement }
+StarfallNightModel >> notifyBoardUpdated [
+	self announcer announce: StarfallNightBoardUpdatedAnnouncement new
+]
+
+{ #category : #announcement }
+StarfallNightModel >> notifyJewelsUpdated [
+	^ StarfallNightJewelsUpdatedAnnouncement new
+]
+
+{ #category : #announcement }
+StarfallNightModel >> notifyNextUpdated [
+	self announcer announce: StarfallNightNextUpdatedAnnouncement new
 ]
 
 { #category : #constants }
 StarfallNightModel >> numberOfColumns [
 	^ 6
+]
+
+{ #category : #accessing }
+StarfallNightModel >> numberOfJewels [
+	^ numberOfJewels ifNil: [ self defaultNumberOfJewels ]
 ]
 
 { #category : #constants }
@@ -173,7 +177,20 @@ StarfallNightModel >> printOn: aStream [
 
 { #category : #actions }
 StarfallNightModel >> right [
-	column := column + 1 min: self numberOfColumns
+	column := column + 1 min: self numberOfColumns.
+	self notifyJewelsUpdated
+]
+
+{ #category : #actions }
+StarfallNightModel >> rotate [
+	currentJewels
+		ifNotNil: [ | j |
+			j := currentJewels at: 1.
+			currentJewels
+				at: 1 put: (currentJewels at: 2);
+				at: 2 put: (currentJewels at: 3);
+				at: 3 put: j.
+			self notifyJewelsUpdated ]
 ]
 
 { #category : #accessing }
@@ -188,7 +205,15 @@ StarfallNightModel >> row: anInteger [
 
 { #category : #actions }
 StarfallNightModel >> shrink [
-	columns := columns collect: [ :theColumn | theColumn reject: #isNil ]
+	columns := columns collect: [ :theColumn | theColumn reject: #isNil ].
+	self notifyBoardUpdated 
+]
+
+{ #category : #actions }
+StarfallNightModel >> tick [
+	heart := heart + 1.
+	heart >= self heartCycle
+		ifTrue: [ self cycle ]
 ]
 
 { #category : #constants }
@@ -210,12 +235,14 @@ StarfallNightModel >> vanishTriples [
 	self
 		triplesDo: [ :p1 :p2 :p3 | 
 			| j |
-			((j := self at: p1) notNil and: [ j = (self at: p2) and: [ j = (self at: p3) ] ])
+			((j := self at: p1) notNil
+				and: [ j = (self at: p2) and: [ j = (self at: p3) ] ])
 				ifTrue: [ points
 						nextPut: p1;
 						nextPut: p2;
 						nextPut: p3 ] ].
 	points := points contents.
 	points do: [ :p | self at: p put: nil ].
+	points ifNotEmpty: [ self notifyBoardUpdated ].
 	^ points notEmpty
 ]

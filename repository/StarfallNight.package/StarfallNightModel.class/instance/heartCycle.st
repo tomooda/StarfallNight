@@ -1,0 +1,3 @@
+constants
+heartCycle
+	^ 10

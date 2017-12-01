@@ -1,0 +1,20 @@
+{
+	"commentStamp" : "tomooda 11/30/2017 12:53",
+	"super" : "Object",
+	"category" : "StarfallNight",
+	"classinstvars" : [ ],
+	"pools" : [ ],
+	"classvars" : [ ],
+	"instvars" : [
+		"columns",
+		"currentJewels",
+		"nextJewels",
+		"column",
+		"row",
+		"jewels",
+		"heart",
+		"announcer"
+	],
+	"name" : "StarfallNightModel",
+	"type" : "normal"
+}

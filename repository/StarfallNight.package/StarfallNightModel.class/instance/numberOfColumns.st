@@ -1,0 +1,3 @@
+constants
+numberOfColumns
+	^ 6

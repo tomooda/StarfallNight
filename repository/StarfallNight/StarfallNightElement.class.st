@@ -54,7 +54,10 @@ StarfallNightElement >> drawOnSpartaCanvas: aCanvas [
 				roundedRectangle: (((c - 1) * 40) @ ((starfallNight numberOfRows - r) * 40) extent: 39 @ 39)
 				radii: (BlCornerRadii radius: 10).
 			aCanvas fill
-				paint: ((starfallNight at: r @ c) ifNotNil: [ :jewelIndex | self colorAt: jewelIndex ] ifNil: [ Color black ]);
+				paint:
+					((starfallNight at: r @ c)
+						ifNotNil: [ :jewelIndex | self colorAt: jewelIndex ]
+						ifNil: [ Color black ]);
 				path: rect;
 				draw ] ].
 	starfallNight currentJewels
@@ -70,7 +73,17 @@ StarfallNightElement >> drawOnSpartaCanvas: aCanvas [
 						aCanvas fill
 							paint: (self colorAt: (starfallNight currentJewels at: index));
 							path: rect;
-							draw ] ] ]
+							draw ] ] ].
+	starfallNight nextJewels
+		ifNotNil: [ 1 to: 3 do: [ :index | 
+				| rect |
+				rect := aCanvas shape
+					roundedRectangle: ((6 * 40 + 10) @ (160 - (index * 40)) extent: 39 @ 39)
+					radii: (BlCornerRadii radius: 10).
+				aCanvas fill
+					paint: (self colorAt: (starfallNight nextJewels at: index));
+					path: rect;
+					draw ] ]
 ]
 
 { #category : #initialization }

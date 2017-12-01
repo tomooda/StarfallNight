@@ -130,10 +130,11 @@ StarfallNightModel >> heartCycle [
 { #category : #initialization }
 StarfallNightModel >> initialize [
 	super initialize.
-	columns := (1 to: self numberOfColumns) collect: [ :c | OrderedCollection new: self numberOfRows ].
+	columns := (1 to: self numberOfColumns)
+		collect: [ :c | OrderedCollection new: self numberOfRows ].
 	row := self numberOfRows.
 	column := (self numberOfColumns + 1) // 2.
-	nextJewels := self generateTripleJewels.
+	nextJewels ifNil: [ nextJewels := self generateTripleJewels ].
 	heart := 0
 ]
 

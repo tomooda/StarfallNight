@@ -12,10 +12,22 @@ Class {
 		'row',
 		'numberOfJewels',
 		'heart',
+		'animation',
 		'announcer'
 	],
 	#category : #StarfallNight
 }
+
+{ #category : #examples }
+StarfallNightModel class >> example [
+	<script: 'StarfallNightModel example'>
+	| model element space |
+	model := StarfallNightModel new.
+	element := StarfallNightElement new.
+	element starfallNight: model.
+	^ element
+
+]
 
 { #category : #accessing }
 StarfallNightModel >> announcer [
@@ -57,16 +69,6 @@ StarfallNightModel >> currentJewels [
 	^ currentJewels
 ]
 
-{ #category : #actions }
-StarfallNightModel >> cycle [
-	currentJewels
-		ifNil: [ self shrink.
-			self vanishTriples
-				ifFalse: [ self next ] ]
-		ifNotNil: [ self fall ].
-	heart := 0
-]
-
 { #category : #defaults }
 StarfallNightModel >> defaultNumberOfJewels [
 	^ 6
@@ -85,6 +87,27 @@ StarfallNightModel >> fall [
 		ifFalse: [ (columns at: column) addAll: currentJewels.
 			currentJewels := nil ].
 	self notifyJewelsUpdated
+]
+
+{ #category : #actions }
+StarfallNightModel >> gameOver [
+	animation
+		ifNotNil: [ animation
+				stop;
+				onFinishedDo: [  ].
+			animation := nil ]
+]
+
+{ #category : #actions }
+StarfallNightModel >> gameStart [
+	self initialize.
+	animation
+		ifNil: [ animation := BlAnimation new
+				duration: 300 milliSeconds;
+				beInfinite;
+				onFinishedDo: [ self onStep ] ].
+	animation isRunning
+		ifFalse: [ animation start ]
 ]
 
 { #category : #accessing }
@@ -114,10 +137,20 @@ StarfallNightModel >> initialize [
 	heart := 0
 ]
 
+{ #category : #testing }
+StarfallNightModel >> isRunning [
+	^ animation notNil and: [ animation isRunning ]
+]
+
 { #category : #actions }
 StarfallNightModel >> left [
-	column := column - 1 max: 1.
-	self notifyJewelsUpdated 
+	column <= 1
+		ifTrue: [ ^ self ].
+	(self at: row @ (column - 1)) ifNotNil: [ ^ self ].
+	(self at: (row + 1) @ (column - 1)) ifNotNil: [ ^ self ].
+	(self at: (row + 2) @ (column - 1)) ifNotNil: [ ^ self ].
+	column := column - 1.
+	self notifyJewelsUpdated
 ]
 
 { #category : #actions }
@@ -126,6 +159,7 @@ StarfallNightModel >> next [
 	nextJewels := self generateTripleJewels.
 	row := self numberOfRows.
 	column := (self numberOfColumns + 1) // 2.
+	(self at: row @ column) ifNotNil: [ self gameOver ].
 	self notifyNextUpdated.
 	self notifyJewelsUpdated
 ]
@@ -142,7 +176,7 @@ StarfallNightModel >> notifyBoardUpdated [
 
 { #category : #announcement }
 StarfallNightModel >> notifyJewelsUpdated [
-	^ StarfallNightJewelsUpdatedAnnouncement new
+	self announcer announce: StarfallNightJewelsUpdatedAnnouncement new
 ]
 
 { #category : #announcement }
@@ -165,6 +199,15 @@ StarfallNightModel >> numberOfRows [
 	^ 13
 ]
 
+{ #category : #actions }
+StarfallNightModel >> onStep [
+	currentJewels
+		ifNil: [ self shrink.
+			self vanishTriples
+				ifFalse: [ self next ] ]
+		ifNotNil: [ self fall ]
+]
+
 { #category : #printing }
 StarfallNightModel >> printOn: aStream [
 	super printOn: aStream.
@@ -177,7 +220,12 @@ StarfallNightModel >> printOn: aStream [
 
 { #category : #actions }
 StarfallNightModel >> right [
-	column := column + 1 min: self numberOfColumns.
+	column >= self numberOfColumns
+		ifTrue: [ ^ self ].
+	(self at: row @ (column + 1)) ifNotNil: [ ^ self ].
+	(self at: (row + 1) @ (column + 1)) ifNotNil: [ ^ self ].
+	(self at: (row + 2) @ (column + 1)) ifNotNil: [ ^ self ].
+	column := column + 1.
 	self notifyJewelsUpdated
 ]
 
@@ -207,13 +255,6 @@ StarfallNightModel >> row: anInteger [
 StarfallNightModel >> shrink [
 	columns := columns collect: [ :theColumn | theColumn reject: #isNil ].
 	self notifyBoardUpdated 
-]
-
-{ #category : #actions }
-StarfallNightModel >> tick [
-	heart := heart + 1.
-	heart >= self heartCycle
-		ifTrue: [ self cycle ]
 ]
 
 { #category : #constants }

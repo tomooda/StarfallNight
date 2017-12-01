@@ -6,8 +6,7 @@ Class {
 	#superclass : #BlElement,
 	#instVars : [
 		'starfallNight',
-		'colors',
-		'characters'
+		'colors'
 	],
 	#category : #StarfallNight
 }
@@ -15,21 +14,6 @@ Class {
 { #category : #accessing }
 StarfallNightElement >> backgroundPaint [
 	^ Color gray
-]
-
-{ #category : #accessing }
-StarfallNightElement >> characterAt: anInteger [
-	^ characters at: anInteger ifAbsent: [ Character space ]
-]
-
-{ #category : #accessing }
-StarfallNightElement >> characters: anArrayOfCharacter [
-	characters := anArrayOfCharacter
-]
-
-{ #category : #accessing }
-StarfallNightElement >> charactersAt: anInteger [
-	^ characters at: anInteger ifAbsent: [ Character space ]
 ]
 
 { #category : #accessing }
@@ -55,11 +39,6 @@ StarfallNightElement >> defaultColors [
 	Color orange.
 	Color yellow.
 	Color green}
-]
-
-{ #category : #defaults }
-StarfallNightElement >> defaultJewels [
-	^ #($A $B $C $D $E $F)
 ]
 
 { #category : #drawing }
@@ -100,6 +79,36 @@ StarfallNightElement >> initialize [
 	self size: 290 @ 520
 ]
 
+{ #category : #actions }
+StarfallNightElement >> onBoardChange [
+	self invalidate
+]
+
+{ #category : #actions }
+StarfallNightElement >> onJewelsChange [
+	self invalidate
+]
+
+{ #category : #'event handling' }
+StarfallNightElement >> onKeystroke: aBlKeystrokeEvent [
+	starfallNight ifNil: [ ^ self ].
+	starfallNight isRunning
+		ifTrue: [ aBlKeystrokeEvent char = Character arrowLeft
+				ifTrue: [ starfallNight left ].
+			aBlKeystrokeEvent char = Character arrowRight
+				ifTrue: [ starfallNight right ].
+			aBlKeystrokeEvent char = Character arrowDown
+				ifTrue: [ starfallNight down ].
+			aBlKeystrokeEvent char = Character arrowUp
+				ifTrue: [ starfallNight rotate ] ]
+		ifFalse: [ starfallNight gameStart ]
+]
+
+{ #category : #actions }
+StarfallNightElement >> onNextChange [
+	self invalidate
+]
+
 { #category : #accessing }
 StarfallNightElement >> starfallNight [
 	^ starfallNight 
@@ -107,5 +116,23 @@ StarfallNightElement >> starfallNight [
 
 { #category : #accessing }
 StarfallNightElement >> starfallNight: aStarfallNightModel [
-	starfallNight := aStarfallNightModel
+	starfallNight := aStarfallNightModel.
+	self
+		addEventHandler:
+			(BlEventHandler
+				on: BlKeystrokeEvent
+				do: [ :anEvent | self onKeystroke: anEvent ]).
+	self requestFocus.
+	starfallNight announcer
+		when: StarfallNightBoardUpdatedAnnouncement
+		send: #onBoardChange
+		to: self.
+	starfallNight announcer
+		when: StarfallNightNextUpdatedAnnouncement
+		send: #onNextChange
+		to: self.
+	starfallNight announcer
+		when: StarfallNightJewelsUpdatedAnnouncement
+		send: #onJewelsChange
+		to: self
 ]

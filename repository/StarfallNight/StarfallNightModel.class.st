@@ -20,13 +20,13 @@ Class {
 
 { #category : #examples }
 StarfallNightModel class >> example [
+	<gtExample>
 	<script: 'StarfallNightModel example'>
-	| model element space |
+	| model element |
 	model := StarfallNightModel new.
 	element := StarfallNightElement new.
 	element starfallNight: model.
 	^ element
-
 ]
 
 { #category : #accessing }

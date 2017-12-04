@@ -20,7 +20,6 @@ Class {
 
 { #category : #examples }
 StarfallNightModel class >> example [
-	<gtExample>
 	<script: 'StarfallNightModel example'>
 	| model element |
 	model := StarfallNightModel new.
@@ -130,11 +129,10 @@ StarfallNightModel >> heartCycle [
 { #category : #initialization }
 StarfallNightModel >> initialize [
 	super initialize.
-	columns := (1 to: self numberOfColumns)
-		collect: [ :c | OrderedCollection new: self numberOfRows ].
+	columns := (1 to: self numberOfColumns) collect: [ :c | OrderedCollection new: self numberOfRows ].
 	row := self numberOfRows.
 	column := (self numberOfColumns + 1) // 2.
-	nextJewels ifNil: [ nextJewels := self generateTripleJewels ].
+	nextJewels := self generateTripleJewels.
 	heart := 0
 ]
 

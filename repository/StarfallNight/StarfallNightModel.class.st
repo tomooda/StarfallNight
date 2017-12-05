@@ -21,6 +21,7 @@ Class {
 { #category : #examples }
 StarfallNightModel class >> example [
 	<script: 'StarfallNightModel example'>
+	<gtExample>
 	| model element |
 	model := StarfallNightModel new.
 	element := StarfallNightElement new.
